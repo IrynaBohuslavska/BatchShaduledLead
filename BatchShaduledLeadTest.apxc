@@ -1,0 +1,45 @@
+@isTest
+private class BatchShaduledLeadTest {
+    
+    @isTest static void test195Leads(){
+        List<Lead> leads = new List<Lead>();
+        for(Integer i = 0; i < 15; i++){
+            leads.add(new Lead(LastName = 'Test '+ i,
+                               Company = 'Company'));
+        }
+        
+        Test.startTest();
+        insert leads;
+        List<Lead> leadsAtrerTriggerOne = [SELECT LastName 
+                                           FROM Lead 
+                                           WHERE Company = 'Company' LIMIT 1];
+        delete leadsAtrerTriggerOne;
+        Test.stopTest();
+        
+        List<Task> taskAfter = [SELECT Subject FROM Task WHERE Subject = 'Call'];
+        
+        System.assertEquals(taskAfter.size(), 1);
+    }
+    
+    
+    @isTest static void batch(){
+        List<Lead> leads = new List<Lead>();
+        for(Integer i = 0; i < 15; i++){
+            leads.add(new Lead(LastName = 'Test '+ i,
+                               Company = 'Company'));
+        }
+        
+        Test.startTest();
+        insert leads;
+        BatchForLeads b = new BatchForLeads();
+        Id bId = Database.executeBatch(b);
+        Test.stopTest();
+        
+        List<Lead> leadsAtrerTrigger = [SELECT LastName FROM Lead WHERE Company = 'Company'];
+        
+        System.assertEquals(leads[3].Id, leadsAtrerTrigger[3].Id);
+        System.assertNotEquals(leads[3].LastName, leadsAtrerTrigger[3].LastName);
+        System.assertEquals(leadsAtrerTrigger.size(), leads.size());
+    }
+    
+}

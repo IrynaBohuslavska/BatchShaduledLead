@@ -1,0 +1,23 @@
+trigger LeadBatchTrigger on Lead (before insert, before delete) {
+    if(Trigger.isInsert){
+        SchaduleForLead schad = new SchaduleForLead();
+        String hour = String.valueOf(Datetime.now().hour());
+        String min = String.valueOf(Datetime.now().minute() + 10); 
+        String ss = String.valueOf(Datetime.now().second());
+        
+        String nextFireTime = ss + ' ' + min + ' ' + hour + ' * * ?';
+        String jobID = System.schedule('Remind Opp Owners', nextFireTime, schad);
+    }
+    
+    if(Trigger.isDelete){
+        
+        List<Task> taskForOwner = new List<Task>();
+        for(Lead l : Trigger.Old){
+            taskForOwner.add(new Task(Subject = 'Call' ,
+                                      Priority = 'High' ,
+                                      Status = 'In Progress',
+                                      Description = l.LastName+' is deleted in' + Datetime.now()));		
+        }
+        insert taskForOwner;
+    }
+}

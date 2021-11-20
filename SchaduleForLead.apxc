@@ -1,0 +1,8 @@
+global class SchaduleForLead implements Schedulable{
+    
+    global void execute(SchedulableContext sc){
+        BatchForLeads myBatchObject = new BatchForLeads();
+        database.executeBatch(myBatchObject);                   
+    }
+    
+}

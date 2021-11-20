@@ -1,0 +1,33 @@
+public class BatchForLeads implements Database.Batchable<SObject>{
+    
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator('SELECT LastName,Id, Company FROM Lead WHERE Company = \'Company\'');
+    }
+    public void execute(Database.BatchableContext bs, List<SObject> scope){
+        List<SObject> leadList = new List<Lead>();
+        for(Lead l : [SELECT LastName,Id, Company FROM Lead WHERE Company = 'Company']){
+            l.LastName = String.valueOfGmt(DateTime.now());
+            leadList.add(l);
+            
+        }
+        update leadList;
+    }
+    public void finish(Database.BatchableContext bc){
+        sendMail();
+        
+    }
+    
+    public static void sendMail() {
+        Messaging.reserveSingleEmailCapacity(2);
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        String[] toAddresses = new String[] {'iryna.bohuslavska@sparkybit.com'};
+            mail.setToAddresses(toAddresses);
+        mail.setSenderDisplayName('Lead name changed');
+        mail.setSubject('Change name');
+        mail.setBccSender(false);
+        mail.setPlainTextBody('Lead name changed');
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+        
+    }
+    
+}
